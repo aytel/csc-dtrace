@@ -1,0 +1,31 @@
+version: '2'
+ 
+services:
+ calculator:
+   image: calculator:1.0
+   restart: always
+   build: ./service/calculator
+   ports:
+     - "5000:5000" 
+   expose:
+     - "5000"
+   command: gunicorn -w 2 -b :5000 main:app
+   depends_on:
+     - parser
+     - presenter
+
+ parser:
+   image: parser:1.0
+   restart: always
+   build: ./service/parser
+   expose:
+     - "5001"
+   command: gunicorn -w 2 -b :5001 main:app
+
+ presenter:
+   image: presenter:1.0
+   restart: always
+   build: ./service/presenter
+   expose:
+     - "5002"
+   command: gunicorn -w 2 -b :5002 main:app

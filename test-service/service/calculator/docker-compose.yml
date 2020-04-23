@@ -1,0 +1,12 @@
+version: '2'
+ 
+services:
+ calculator:
+   image: test-dc-calculator:1.0
+   restart: always
+   build: ./
+   ports:
+     - "5000:5000" 
+   expose:
+     - "5000"
+   command: gunicorn -w 2 -b :5000 main:app
