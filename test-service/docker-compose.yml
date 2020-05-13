@@ -1,6 +1,15 @@
 version: '2'
  
 services:
+ nginx:
+   image: csc_dtrace_nginx:1.0
+   restart: always
+   build: ./nginx
+   ports:
+     - "80:80"
+   depends_on:
+     - calculator
+
  calculator:
    image: calculator:1.0
    restart: always
