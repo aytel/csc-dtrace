@@ -1,5 +1,6 @@
 import logging
 import operator
+import os
 import flask
 import requests
 
@@ -10,6 +11,10 @@ OP_MAP = {
     '-': operator.sub,
     '/': operator.truediv,
     '*': operator.mul
+}
+SERVICES = {
+    'parser': os.getenv('SRV_PARSER'),
+    'presenter': os.getenv('SRV_PRESENTER')
 }
 
 app = flask.Flask(__name__)
@@ -37,15 +42,17 @@ def post(endpoint, params):
 
 def parse(statement):
     params = {'statement': statement}
-    response = post('http://parser:5001/api/v1.0/parser', params)
+    srv_name = SERVICES['parser']
+    response = post(f'http://{srv_name}:5001/api/v1.0/parser', params)
     return response.json()
 
 
 def render(val, frmt):
     params = {'value': val, 'format': frmt}
-    response = post('http://presenter:5002/api/v1.0/presenter', params)
+    srv_name = SERVICES['presenter']
+    response = post(f'http://{srv_name}:5002/api/v1.0/presenter', params)
     return response.text
 
 
 if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="127.0.0.1", port=os.getenv['LISTEN_PORT'], debug=True)
