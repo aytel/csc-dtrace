@@ -13,15 +13,17 @@ OP_MAP = {
 }
 
 app = flask.Flask(__name__)
-handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
-app.logger.addHandler(handler)
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
 
 
 @app.route("/api/v1.0/calculator", methods=['POST'])
 def calc():
     statement = flask.request.form.get('statement')
     parsed = parse(statement)
+    app.logger.info(f'Parsed statement: {parsed}')
     lhs = float(parsed['lhs'])
     rhs = float(parsed['rhs'])
     op = parsed['op']

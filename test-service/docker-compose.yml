@@ -18,7 +18,7 @@ services:
      - "5000:5000" 
    expose:
      - "5000"
-   command: gunicorn -w 2 -b :5000 main:app
+   command: gunicorn -w 2 -b :5000 --log-level info --access-logfile '-' --error-logfile '-' main:app
    depends_on:
      - parser
      - presenter
@@ -29,7 +29,7 @@ services:
    build: ./service/parser
    expose:
      - "5001"
-   command: gunicorn -w 2 -b :5001 main:app
+   command: gunicorn -w 2 -b :5001 --log-level info --access-logfile '-' --error-logfile '-' main:app
 
  presenter:
    image: presenter:1.0
@@ -37,4 +37,4 @@ services:
    build: ./service/presenter
    expose:
      - "5002"
-   command: gunicorn -w 2 -b :5002 main:app
+   command: gunicorn -w 2 -b :5002 --log-level info --access-logfile '-' --error-logfile '-' main:app
