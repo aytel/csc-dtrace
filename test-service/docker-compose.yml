@@ -1,5 +1,5 @@
 version: '2'
- 
+
 services:
     nginx:
         image: csc_dtrace_nginx:1.0
@@ -9,6 +9,7 @@ services:
             - "80:80"
         depends_on:
             - calculator
+            - logspout
 
     calculator:
         image: calculator:1.0
@@ -18,10 +19,11 @@ services:
             - LISTEN_PORT=5000
             - SRV_PARSER=parser
             - SRV_PRESENTER=presenter
-        command: gunicorn -w 2 -b :5000 --log-level info --access-logfile '-' --error-logfile '-' main:app
+        command: gunicorn -b :5000 --config /etc/gunicorn/config.py main:app
         depends_on:
             - parser
             - presenter
+            - logspout
 
     parser:
         image: parser:1.0
@@ -29,7 +31,9 @@ services:
         build: ./service/parser
         environment:
             - LISTEN_PORT=5001
-        command: gunicorn -w 2 -b :5001 --log-level info --access-logfile '-' --error-logfile '-' main:app
+        command: gunicorn -w 2 -b :5001 --config /etc/gunicorn/config.py main:app
+        depends_on:
+            - logspout
 
     presenter:
         image: presenter:1.0
@@ -37,4 +41,13 @@ services:
         build: ./service/presenter
         environment:
             - LISTEN_PORT=5002
-        command: gunicorn -w 2 -b :5002 --log-level info --access-logfile '-' --error-logfile '-' main:app
+        command: gunicorn -w 2 -b :5002 --config /etc/gunicorn/config.py main:app
+        depends_on:
+            - logspout
+
+    logspout:
+        image: gliderlabs/logspout:v3.2.11
+        ports:
+            - "1080:80"
+        volumes:
+          - /var/run/docker.sock:/tmp/docker.sock

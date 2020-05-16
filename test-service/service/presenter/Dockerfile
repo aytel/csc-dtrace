@@ -1,4 +1,4 @@
-FROM python:3.6.10-alpine3.11
+FROM csc_dtrace_gunicorn:1.0
 
 COPY . /app
 WORKDIR /app
