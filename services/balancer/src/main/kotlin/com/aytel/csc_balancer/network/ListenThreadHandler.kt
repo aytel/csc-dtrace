@@ -5,6 +5,8 @@ import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.Unpooled
 import io.netty.channel.*
 import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.handler.codec.http.FullHttpRequest
+import java.util.logging.Logger
 import kotlin.random.Random
 
 class ListenThreadHandler(private val config: Properties) : ChannelInboundHandlerAdapter() {
@@ -19,13 +21,21 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
                 ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
             }
         }
+
+        val logger: Logger = Logger.getLogger(ListenThreadHandler::class.simpleName)
     }
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-        sendMessage(ctx, msg, i)
+        val request: FullHttpRequest = if (msg is FullHttpRequest) {
+            msg
+        } else {
+            super.channelRead(ctx, msg)
+            return
+        }
+        sendMessage(ctx, request, i)
     }
 
-    private fun sendMessage(ctx: ChannelHandlerContext, msg: Any, i: Int, retries: Int = 3) {
+    private fun sendMessage(ctx: ChannelHandlerContext, msg: FullHttpRequest, i: Int, retries: Int = 3) {
         if (channels[i]?.isActive == false) {
             if (retries == 0) {
                 flushAndClose(ctx.channel())
@@ -39,6 +49,7 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
                     ctx.channel().read()
                 } else {
                     channels[i]?.close()
+                    logger.warning("Couldn't send message:\n" + future.cause().message)
                 }
             }
         }
@@ -70,6 +81,8 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
                     inboundChannel.read()
                 } else {
                     future.channel().close()
+                    flushAndClose(ctx.channel())
+                    logger.warning("Couldn't activate channel:\n" + future.cause().message)
                 }
             }
 
@@ -78,6 +91,8 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
     }
 
     override fun channelActive(ctx: ChannelHandlerContext) {
+        logger.info("Accepted conn from" + ctx.channel().remoteAddress().toString());
+
         val sumWeight = config.backends.map { backend -> backend.weight }.sum()
         val randomValue = random.nextDouble(sumWeight)
         i = 0
@@ -86,6 +101,9 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
             acc += config.backends[i].weight
             i++
         }
+
+        logger.info("Trying to send message to " + config.backends[i].address + ":" + config.backends[i].port)
+
         activateChannels(ctx, listOf(i))
     }
 
@@ -102,6 +120,7 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+        logger.warning(cause.message)
         flushAndClose(ctx.channel())
     }
 }
