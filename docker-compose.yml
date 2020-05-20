@@ -2,7 +2,8 @@ version: '2'
 
 services:
     balancer:
-        build: 
+        container_name: balancer
+        build:
             context: ./test-app/service/balancer
             dockerfile: Dockerfile
             args:
@@ -13,18 +14,20 @@ services:
 
 
     nginx:
+        container_name: nginx
         image: nginx:1.17.10-alpine
         restart: always
         volumes:
             - ${PWD}/test-app/service/nginx/nginx.conf:/etc/nginx/nginx.conf
             - ${PWD}/test-app/service/nginx/conf.d:/etc/nginx/conf.d
         ports:
-            - "80:80"
+            - 80:80
         depends_on:
             - calculator
             - logspout
 
     calculator:
+        container_name: app_calculator_01
         image: calculator:1.0
         restart: always
         build: ./test-app/service/calculator
@@ -38,6 +41,7 @@ services:
             - logspout
 
     parser:
+        container_name: app_parser_01
         image: parser:1.0
         restart: always
         build: ./test-app/service/parser
@@ -46,6 +50,7 @@ services:
             - logspout
 
     presenter:
+        container_name: app_presenter_01
         image: presenter:1.0
         restart: always
         build: ./test-app/service/presenter
@@ -56,7 +61,22 @@ services:
     logspout:
         image: gliderlabs/logspout:v3.2.11
         ports:
-            - "1080:80"
+            - 1080:80
         volumes:
           - /var/run/docker.sock:/tmp/docker.sock
+        command: "
+            multiline+udp://logstash:10000?filter.name=nginx,\
+            multiline+udp://logstash:10001?filter.name=balancer,\
+            multiline+udp://logstash:10002?filter.name=app_*
+        "
+        depends_on:
+            - logstash
 
+    logstash:
+        image: docker.elastic.co/logstash/logstash:7.7.0
+        environment:
+            XPACK_MONITORING_ENABLED: "false"
+            LOGSPOUT: "ignore"
+        volumes:
+            - ${PWD}/dtrace/logstash/config/pipelines.yml:/usr/share/logstash/config/pipelines.yml:ro
+            - ${PWD}/dtrace/logstash/config/pipelines:/usr/share/logstash/config/pipelines:ro
