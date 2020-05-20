@@ -32,6 +32,7 @@ services:
         restart: always
         build: ./test-app/service/calculator
         environment:
+            - APP_NAME=app_calculator
             - SRV_PARSER=parser
             - SRV_PRESENTER=presenter
         command: gunicorn -b :5000 --config /etc/gunicorn/config.py main:app
@@ -45,6 +46,8 @@ services:
         image: parser:1.0
         restart: always
         build: ./test-app/service/parser
+        environment:
+            - APP_NAME=app_parser
         command: gunicorn -w 2 -b :5001 --config /etc/gunicorn/config.py main:app
         depends_on:
             - logspout
@@ -54,6 +57,8 @@ services:
         image: presenter:1.0
         restart: always
         build: ./test-app/service/presenter
+        environment:
+            - APP_NAME=app_presenter
         command: gunicorn -w 2 -b :5002 --config /etc/gunicorn/config.py main:app
         depends_on:
             - logspout
