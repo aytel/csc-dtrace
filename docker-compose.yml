@@ -1,6 +1,17 @@
 version: '2'
 
 services:
+    balancer:
+        build: 
+            context: ./test-app/service/balancer
+            dockerfile: Dockerfile
+            args:
+                PROP_FILE: ./docker_balancer.properties
+        restart: always
+        depends_on:
+            - calculator
+
+
     nginx:
         image: nginx:1.17.10-alpine
         restart: always
