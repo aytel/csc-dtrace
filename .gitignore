@@ -133,3 +133,5 @@ test-app/service/balancer/.gradle
 test-app/service/balancer/.idea
 test-app/service/balancer/build
 test-app/service/balancer/gradle
+test-app/service/balancer/gradlew
+test-app/service/balancer/gradlew.bat
