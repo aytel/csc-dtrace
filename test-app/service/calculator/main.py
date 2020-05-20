@@ -84,7 +84,3 @@ def render(val, frmt):
     srv_name = SERVICES['presenter']
     response = post(f'http://{srv_name}:5002/api/v1.0/presenter', params)
     return response.text
-
-
-if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=os.getenv['LISTEN_PORT'], debug=True)
