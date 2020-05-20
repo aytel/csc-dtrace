@@ -33,7 +33,17 @@ if __name__ == '__main__':
         help='Set the number of queries to send. '
              'Default is {}'.format(DEFAULT_QUERIES)
     )
+    parser.add_argument(
+        '-d', '--data',
+        type=str,
+        help='Requst payload. If specified single reuest will be sent with given payload'
+    )
     args = parser.parse_args()
+    if args.data:
+        params = {'statement': args.data}
+        response = post('http://127.0.0.1:80/api/v1.0/calculator', params)
+        print(f'{args.data} = {response.text}')
+        exit(0)
     for i in range(args.queries):
         a = random.randint(0, 100)
         b = random.randint(0, 100)
