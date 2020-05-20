@@ -16,6 +16,7 @@ SERVICES = {
     'parser': os.getenv('SRV_PARSER'),
     'presenter': os.getenv('SRV_PRESENTER')
 }
+APP_NAME = os.getenv('APP_NAME')
 
 
 class ContextFilter(logging.Filter):
@@ -25,33 +26,16 @@ class ContextFilter(logging.Filter):
         return True
 
 
-# extra = {'app_name':'Super App'}
-
-# logger = logging.getLogger(__name__)
-# syslog = logging.StreamHandler()
-# formatter = logging.Formatter('%(asctime)s %(app_name)s : %(message)s')
-# syslog.setFormatter(formatter)
-# logger.setLevel(logging.INFO)
-# logger.addHandler(syslog)
-
-
 app = flask.Flask(__name__)
-if __name__ != '__main__':
-    # logging.basicConfig(format='%(x_request_id)s %(asctime)-15s %(name)-5s %(levelname)-8s %(message)s')
-    # gunicorn_logger = logging.getLogger('gunicorn.error')
-    # app.logger.handlers = gunicorn_logger.handlers
-    # app.logger.setLevel(gunicorn_logger.level)
-    # app.logger.addFilter(ContextFilter())
 
-
-    logger = logging.getLogger(__name__)
-    syslog = logging.StreamHandler()
-    formatter = logging.Formatter('%(x_request_id)s %(asctime)-15s %(name)-5s %(levelname)-8s %(message)s')
-    syslog.setFormatter(formatter)
-    logger.setLevel(logging.INFO)
-    logger.addHandler(syslog)
-    logger.addFilter(ContextFilter())
-    app.logger = logger
+logger = logging.getLogger(APP_NAME)
+app_log = logging.StreamHandler()
+formatter = logging.Formatter('%(x_request_id)s %(asctime)s %(name)s [%(levelname)s] %(message)s')
+app_log.setFormatter(formatter)
+logger.setLevel(logging.INFO)
+logger.addHandler(app_log)
+logger.addFilter(ContextFilter())
+app.logger = logger
 
 
 @app.route("/api/v1.0/calculator", methods=['POST'])
