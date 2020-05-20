@@ -29,7 +29,6 @@ services:
         restart: always
         build: ./test-app/service/calculator
         environment:
-            - LISTEN_PORT=5000
             - SRV_PARSER=parser
             - SRV_PRESENTER=presenter
         command: gunicorn -b :5000 --config /etc/gunicorn/config.py main:app
@@ -42,8 +41,6 @@ services:
         image: parser:1.0
         restart: always
         build: ./test-app/service/parser
-        environment:
-            - LISTEN_PORT=5001
         command: gunicorn -w 2 -b :5001 --config /etc/gunicorn/config.py main:app
         depends_on:
             - logspout
@@ -52,8 +49,6 @@ services:
         image: presenter:1.0
         restart: always
         build: ./test-app/service/presenter
-        environment:
-            - LISTEN_PORT=5002
         command: gunicorn -w 2 -b :5002 --config /etc/gunicorn/config.py main:app
         depends_on:
             - logspout

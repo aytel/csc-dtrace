@@ -18,7 +18,3 @@ def parse():
     else:
         parsed = {}
     return flask.json.jsonify(parsed)
-
-
-if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=os.getenv['LISTEN_PORT'], debug=True)
