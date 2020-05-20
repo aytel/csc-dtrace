@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#balancer .idea and builds
+services/balancer/.gradle
+services/balancer/.idea
+services/balancer/build
+services/balancer/gradle

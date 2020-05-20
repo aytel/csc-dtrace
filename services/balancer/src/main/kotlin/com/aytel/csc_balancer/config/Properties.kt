@@ -24,7 +24,8 @@ class Properties(path: String) {
             } catch (e: NullPointerException) {
                 throw ExceptionInInitializerError(e)
             }
-
+        } else {
+            throw ExceptionInInitializerError()
         }
         listenPort = Integer.parseInt(config.getProperty("listen_port", "23179"))
         workerLoopGroup = NioEventLoopGroup(Runtime.getRuntime().availableProcessors())
