@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 #balancer .idea and builds
-services/balancer/.gradle
-services/balancer/.idea
-services/balancer/build
-services/balancer/gradle
+test-app/service/balancer/.gradle
+test-app/service/balancer/.idea
+test-app/service/balancer/build
+test-app/service/balancer/gradle
