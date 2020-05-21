@@ -8,10 +8,11 @@ services:
             dockerfile: Dockerfile
             args:
                 PROP_FILE: ./docker_balancer.properties
+        environment:
+            - LOGSPOUT=ignore
         restart: always
         depends_on:
             - calculator
-
 
     nginx:
         container_name: nginx
@@ -64,16 +65,17 @@ services:
             - logspout
 
     logspout:
-        image: gliderlabs/logspout:v3.2.11
+        image: csc_dtrace_logspout:1.0
+        restart: always
+        environment:
+            - TCP_HOST=logstash
+            - TCP_PORT=10000
         ports:
             - 1080:80
         volumes:
           - /var/run/docker.sock:/tmp/docker.sock
-        command: "
-            multiline+udp://logstash:10000?filter.name=nginx,\
-            multiline+udp://logstash:10001?filter.name=balancer,\
-            multiline+udp://logstash:10002?filter.name=app_*
-        "
+        command:
+            tcp://logstash:10000
         depends_on:
             - logstash
 
@@ -86,6 +88,9 @@ services:
             - ${PWD}/dtrace/logstash/config/pipelines.yml:/usr/share/logstash/config/pipelines.yml:ro
             - ${PWD}/dtrace/logstash/config/pipelines:/usr/share/logstash/config/pipelines:ro
             - ${PWD}/dtrace/logstash/patterns:/usr/share/logstash/config/patterns:ro
+            - ${PWD}/dtrace/logstash/config/log.log:/usr/share/logstash/config/log.log:ro
+        depends_on:
+            - elasticsearch
 
     elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
@@ -101,4 +106,4 @@ services:
                 soft: -1
                 hard: -1
         ports:
-          - "9200:9200"
+            - 9200:9200
