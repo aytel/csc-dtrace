@@ -88,7 +88,6 @@ services:
             - ${PWD}/dtrace/logstash/config/pipelines.yml:/usr/share/logstash/config/pipelines.yml:ro
             - ${PWD}/dtrace/logstash/config/pipelines:/usr/share/logstash/config/pipelines:ro
             - ${PWD}/dtrace/logstash/patterns:/usr/share/logstash/config/patterns:ro
-            - ${PWD}/dtrace/logstash/config/log.log:/usr/share/logstash/config/log.log:ro
         depends_on:
             - elasticsearch
 
