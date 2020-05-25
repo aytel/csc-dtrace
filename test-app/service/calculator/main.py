@@ -59,12 +59,12 @@ def post(endpoint, params):
 def parse(statement):
     params = {'statement': statement}
     srv_name = SERVICES['parser']
-    response = post(f'http://{srv_name}:5001/api/v1.0/parser', params)
+    response = post(f'http://{srv_name}:5000/api/v1.0/parser', params)
     return response.json()
 
 
 def render(val, frmt):
     params = {'value': val, 'format': frmt}
     srv_name = SERVICES['presenter']
-    response = post(f'http://{srv_name}:5002/api/v1.0/presenter', params)
+    response = post(f'http://{srv_name}:5000/api/v1.0/presenter', params)
     return response.text
