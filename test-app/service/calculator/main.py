@@ -21,17 +21,23 @@ APP_NAME = os.getenv('APP_NAME')
 
 
 class ContextFilter(logging.Filter):
-
     def filter(self, record):
         record.x_request_id = flask.request.headers.get('x-request-id')
         return True
+
+
+class Formatter(logging.Formatter):
+    def formatTime(self, record, datefmt=None):
+        t = time.localtime(record.created)
+        t_str = time.strftime('%Y-%m-%dT%H:%M:%S.{}%z', t)
+        return t_str.format(round(record.msecs))
 
 
 app = flask.Flask(__name__)
 
 logger = logging.getLogger(APP_NAME)
 app_log = logging.StreamHandler()
-formatter = logging.Formatter('%(x_request_id)s %(asctime)s %(name)s [%(levelname)s] %(message)s')
+formatter = logging.Formatter('%(asctime)s %(name)s %(x_request_id)s [%(levelname)s] %(message)s')
 app_log.setFormatter(formatter)
 logger.setLevel(logging.INFO)
 logger.addHandler(app_log)
