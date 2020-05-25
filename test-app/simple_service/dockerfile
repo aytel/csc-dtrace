@@ -1,0 +1,6 @@
+FROM python:3.6.10-alpine3.11
+COPY requirements.txt /tmp
+RUN pip install -r /tmp/requirements.txt
+RUN rm /tmp/requirements.txt
+COPY gunicorn_config.py /etc/gunicorn/config.py
+COPY simple_service.py /usr/local/lib/python3.6/site-packages/simple_service.py
