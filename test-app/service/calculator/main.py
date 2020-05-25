@@ -1,3 +1,4 @@
+import functools
 import logging
 import operator
 import os
@@ -38,7 +39,17 @@ logger.addFilter(ContextFilter())
 app.logger = logger
 
 
+def response(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        resp = flask.make_response(func(*args, **kwargs))
+        resp.headers['x-request-id'] = flask.request.headers.get('x-request-id')
+        return resp
+    return wrapper
+
+
 @app.route("/api/v1.0/calculator", methods=['POST'])
+@response
 def calc():
     statement = flask.request.form.get('statement')
     parsed = parse(statement)
