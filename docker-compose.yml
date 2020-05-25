@@ -1,18 +1,6 @@
 version: '2'
 
 services:
-    balancer:
-        container_name: balancer
-        image: balancer:latest
-        restart: always
-        build: ./test-app/service/balancer
-        environment:
-            - LOGSPOUT=ignore
-        volumes:
-            - ${PWD}/test-app/service/balancer/docker_balancer.properties:/app/balancer.properties:ro
-        depends_on:
-            - calculator
-
     nginx:
         container_name: nginx
         image: nginx:1.17.10-alpine
@@ -27,7 +15,18 @@ services:
             - logspout
 
     calculator:
-        container_name: app_calculator_01
+        container_name: calculator_b
+        image: balancer:latest
+        restart: always
+        build: ./test-app/service/balancer
+        environment:
+            - LOGSPOUT=ignore
+        volumes:
+            - ${PWD}/test-app/service/calculator/balancer.properties:/app/balancer.properties:ro
+        depends_on:
+            - calculator_srv
+
+    calculator_srv:
         image: calculator:1.0
         restart: always
         build: ./test-app/service/calculator
@@ -42,24 +41,46 @@ services:
             - logspout
 
     parser:
-        container_name: app_parser_01
+        container_name: parser_b
+        image: balancer:latest
+        restart: always
+        build: ./test-app/service/balancer
+        environment:
+            - LOGSPOUT=ignore
+        volumes:
+            - ${PWD}/test-app/service/parser/balancer.properties:/app/balancer.properties:ro
+        depends_on:
+            - parser_srv
+
+    parser_srv:
         image: parser:1.0
         restart: always
         build: ./test-app/service/parser
         environment:
             - APP_NAME=app_parser
-        command: gunicorn -w 2 -b :5001 --config /etc/gunicorn/config.py main:app
+        command: gunicorn -w 2 -b :5000 --config /etc/gunicorn/config.py main:app
         depends_on:
             - logspout
 
     presenter:
-        container_name: app_presenter_01
+        container_name: presenter_b
+        image: balancer:latest
+        restart: always
+        build: ./test-app/service/balancer
+        environment:
+            - LOGSPOUT=ignore
+        volumes:
+            - ${PWD}/test-app/service/presenter/balancer.properties:/app/balancer.properties:ro
+        depends_on:
+            - parser_srv
+
+    presenter_srv:
         image: presenter:1.0
         restart: always
         build: ./test-app/service/presenter
         environment:
             - APP_NAME=app_presenter
-        command: gunicorn -w 2 -b :5002 --config /etc/gunicorn/config.py main:app
+        command: gunicorn -w 2 -b :5000 --config /etc/gunicorn/config.py main:app
         depends_on:
             - logspout
 
