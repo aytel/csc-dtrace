@@ -34,6 +34,7 @@ HEADERS = (('Content-Type', 'application/x-www-form-urlencoded'),)
 class ContextFilter(logging.Filter):
     def filter(self, record):
         record.x_request_id = flask.request.headers.get('x-request-id')
+        record.x_caller_id = flask.request.headers.get('x-caller-id') or '-'
         return True
 
 
@@ -56,7 +57,7 @@ app = flask.Flask(SERVECE_ID)
 
 logger = logging.getLogger(SERVECE_ID)
 app_log = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s %(name)s %(x_request_id)s [%(levelname)s] %(message)s')
+formatter = logging.Formatter('%(asctime)s %(x_caller_id)s %(name)s %(x_request_id)s [%(levelname)s] %(message)s')
 app_log.setFormatter(formatter)
 logger.setLevel(logging.INFO)
 logger.addHandler(app_log)
@@ -67,6 +68,7 @@ app.logger = logger
 def post(endpoint, params):
     headers = dict(HEADERS)
     headers['x-request-id'] = flask.request.headers.get('x-request-id')
+    headers['x-caller-id'] = str(SERVECE_ID)
     return requests.post(endpoint, headers=headers, data=params)
 
 

@@ -14,6 +14,7 @@ app = srv.app
 def dispath():
     val = flask.request.form.get('value')
     frmt = flask.request.form.get('format')
+    app.logger.info(f'value: {val}, format: {frmt}')
     formatter = FORMATTERS[frmt]
     return formatter(val)
 

@@ -13,6 +13,7 @@ ST_RE = re.compile(r'(?P<lhs>[0-9]+)(?P<op>.)(?P<rhs>[0-9]+)')
 @srv.response
 def parse():
     statement = flask.request.form.get('statement').strip()
+    app.logger.info(f'Statement: {statement}')
     match = ST_RE.fullmatch(statement)
     if match:
         parsed = match.groupdict()
