@@ -95,8 +95,10 @@ services:
             - 1080:80
         volumes:
           - /var/run/docker.sock:/tmp/docker.sock
-        command:
-            tcp://logstash:10000
+        command: "
+            tcp://logstash:10000?filter.name=nginx,\
+            tcp://logstash:10001?filter.name=*_srv_*
+        "
         depends_on:
             - logstash
 
