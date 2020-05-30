@@ -11,7 +11,6 @@ class ListenHandlerInitializer(private val config: Properties) : ChannelInitiali
 
     @Throws(Exception::class)
     override fun initChannel(ch: SocketChannel) {
-        logger.info("Initializing channel with " + ch.remoteAddress().toString())
         val p = ch.pipeline()
         p.addLast(HttpServerCodec())
         p.addLast(HttpObjectAggregator(MAX_SIZE))
@@ -20,6 +19,5 @@ class ListenHandlerInitializer(private val config: Properties) : ChannelInitiali
 
     companion object {
         private const val MAX_SIZE = 1024 * 1024
-        val logger: Logger = Logger.getLogger(ListenHandlerInitializer::class.simpleName)
     }
 }

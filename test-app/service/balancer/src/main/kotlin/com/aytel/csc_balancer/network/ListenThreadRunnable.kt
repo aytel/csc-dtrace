@@ -8,11 +8,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import java.util.logging.Logger
 
 class ListenThreadRunnable(private val config: Properties): Runnable {
-
-    companion object {
-        val logger: Logger = Logger.getLogger(ListenThreadRunnable::class.simpleName)
-    }
-
     override fun run() {
         val listenGroup = NioEventLoopGroup(1)
 
@@ -31,7 +26,7 @@ class ListenThreadRunnable(private val config: Properties): Runnable {
                 .childHandler(ListenHandlerInitializer(config))
             val f = b.bind("0.0.0.0", config.listenPort).sync()
 
-            logger.info("Ready to read.")
+            System.err.println("Ready to read.")
 
             f.channel().closeFuture().sync()
         } catch (e: Exception) {
