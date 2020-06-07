@@ -15,30 +15,32 @@ import java.util.logging.SimpleFormatter
 
 class BackendHandler(private val channel: Channel, private val backend: Backend): ChannelInboundHandlerAdapter() {
     companion object {
-        lateinit var logger: Logger
+        val logger: Logger
 
         const val logFormat = "%s %s %s %s %s %s\n"
         val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-    }
 
-    init {
-        val baseLogger = Logger.getLogger("com.aytel.csc_balancer")
-        baseLogger.useParentHandlers = false
-        val handler = ConsoleHandler()
-        handler.formatter = object: SimpleFormatter() {
-            override fun format(record: LogRecord): String {
-                val data = record.message.split(" ")
-                val requestId = data[0]
-                val client = data[1]
-                val server = data[2]
-                val result = data[3]
-                return logFormat.format(requestId, timestampFormat.format(Date()),
-                    record.level.localizedName, client, server, result)
+        init {
+            /*val baseLogger = Logger.getLogger("com.aytel.csc_balancer")
+            baseLogger.useParentHandlers = false
+            val handler = ConsoleHandler()
+            handler.formatter = object : SimpleFormatter() {
+                override fun format(record: LogRecord): String {
+                    val data = record.message.split(" ")
+                    val requestId = data[0]
+                    val client = data[1]
+                    val server = data[2]
+                    val result = data[3]
+                    return logFormat.format(
+                        requestId, timestampFormat.format(Date()),
+                        record.level.localizedName, client, server, result
+                    )
+                }
             }
-        }
-        baseLogger.addHandler(handler)
+            baseLogger.addHandler(handler)*/
 
-        logger = Logger.getLogger(BackendHandler::class.qualifiedName)
+            logger = Logger.getLogger(BackendHandler::class.qualifiedName)
+        }
     }
 
     override fun channelActive(ctx: ChannelHandlerContext) {
@@ -71,7 +73,11 @@ class BackendHandler(private val channel: Channel, private val backend: Backend)
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        System.err.println(cause.message)
+        val requestId = "null"
+        val server = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
+        val client = (channel.remoteAddress() as InetSocketAddress).address.hostAddress
+        ListenThreadHandler.logger.warning("$requestId $client $server EXC")
+        //System.err.println(cause.message)
         ListenThreadHandler.flushAndClose(channel)
     }
 

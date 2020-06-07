@@ -22,7 +22,21 @@ object ApplicationMain {
     val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
     init {
-
+        /*val baseLogger = Logger.getLogger("com.aytel.csc_balancer")
+        baseLogger.useParentHandlers = false
+        val handler = ConsoleHandler()
+        handler.formatter = object: SimpleFormatter() {
+            override fun format(record: LogRecord): String {
+                val data = record.message.split(" ")
+                val requestId = data[0]
+                val client = data[1]
+                val server = data[2]
+                val result = data[3]
+                return logFormat.format(requestId, timestampFormat.format(Date()),
+                    record.level.localizedName, client, server, result)
+            }
+        }
+        baseLogger.addHandler(handler)*/
     }
 
     @Throws(Exception::class)

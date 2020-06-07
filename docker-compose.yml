@@ -19,8 +19,8 @@ services:
         image: balancer:latest
         restart: always
         build: ./test-app/service/balancer
-        environment:
-            - LOGSPOUT=ignore
+        #environment:
+            #- LOGSPOUT=ignore
         volumes:
             - ${PWD}/test-app/service/calculator/balancer.properties:/app/balancer.properties:ro
         depends_on:
@@ -46,8 +46,8 @@ services:
         image: balancer:latest
         restart: always
         build: ./test-app/service/balancer
-        environment:
-            - LOGSPOUT=ignore
+        #environment:
+            #- LOGSPOUT=ignore
         volumes:
             - ${PWD}/test-app/service/parser/balancer.properties:/app/balancer.properties:ro
         depends_on:
@@ -68,8 +68,8 @@ services:
         image: balancer:latest
         restart: always
         build: ./test-app/service/balancer
-        environment:
-            - LOGSPOUT=ignore
+        #environment:
+            #- LOGSPOUT=ignore
         volumes:
             - ${PWD}/test-app/service/presenter/balancer.properties:/app/balancer.properties:ro
         depends_on:
@@ -97,7 +97,8 @@ services:
           - /var/run/docker.sock:/tmp/docker.sock
         command: "
             tcp://logstash:10000?filter.name=nginx,\
-            tcp://logstash:10001?filter.name=*_srv_*
+            tcp://logstash:10001?filter.name=*_srv_*,\
+            tcp://logstash:10002?filter.name=*_b
         "
         depends_on:
             - logstash

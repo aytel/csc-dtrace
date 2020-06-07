@@ -29,30 +29,30 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
             }
         }
 
-        lateinit var logger: Logger
+        val logger: Logger
 
         const val logFormat = "%s %s %s %s %s %s\n"
         val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-    }
 
-    init {
-        val baseLogger = Logger.getLogger("com.aytel.csc_balancer")
-        baseLogger.useParentHandlers = false
-        val handler = ConsoleHandler()
-        handler.formatter = object: SimpleFormatter() {
-            override fun format(record: LogRecord): String {
-                val data = record.message.split(" ")
-                val requestId = data[0]
-                val client = data[1]
-                val server = data[2]
-                val result = data[3]
-                return logFormat.format(requestId, timestampFormat.format(Date()),
-                    record.level.localizedName, client, server, result)
+        init {
+            val baseLogger = Logger.getLogger("com.aytel.csc_balancer")
+            baseLogger.useParentHandlers = false
+            val handler = ConsoleHandler()
+            handler.formatter = object: SimpleFormatter() {
+                override fun format(record: LogRecord): String {
+                    val data = record.message.split(" ")
+                    val requestId = data[0]
+                    val client = data[1]
+                    val server = data[2]
+                    val result = data[3]
+                    return logFormat.format(requestId, timestampFormat.format(Date()),
+                        record.level.localizedName, client, server, result)
+                }
             }
-        }
-        baseLogger.addHandler(handler)
+            baseLogger.addHandler(handler)
 
-        logger = Logger.getLogger(ListenThreadHandler::class.qualifiedName)
+            logger = Logger.getLogger(ListenThreadHandler::class.qualifiedName)
+        }
     }
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
@@ -79,7 +79,7 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
         } else {
             channels[i]?.writeAndFlush(msg)?.addListener { future ->
                 if (future.isSuccess) {
-                    logger.info("$requestId $client $server OK")
+                    logger.info("$requestId $client $server SUBM")
                     ctx.channel().read()
                 } else {
                     logger.warning("$requestId $client $server FAIL")
@@ -159,7 +159,7 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
         val client = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
         val server = config.backends[i].address + ":" + config.backends[i].port
         logger.warning("$requestId $client $server EXC")
-        System.err.println(cause.message)
+        //System.err.println(cause.message)
         flushAndClose(ctx.channel())
     }
 }
