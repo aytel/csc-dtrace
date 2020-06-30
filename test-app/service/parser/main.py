@@ -19,4 +19,5 @@ def parse():
         parsed = match.groupdict()
     else:
         parsed = {}
+    raise "kek"
     return flask.json.jsonify(parsed)

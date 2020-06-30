@@ -31,7 +31,7 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
 
         val logger: Logger
 
-        const val logFormat = "%s %s %s %s %s %s\n"
+        const val logFormat = "%s %s %s %s %s %s %s %s %s\n"
         val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
         init {
@@ -42,11 +42,14 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
                 override fun format(record: LogRecord): String {
                     val data = record.message.split(" ")
                     val requestId = data[0]
-                    val client = data[1]
-                    val server = data[2]
-                    val result = data[3]
-                    return logFormat.format(requestId, timestampFormat.format(Date()),
-                        record.level.localizedName, client, server, result)
+                    val spanId = data[1]
+                    val parId = data[2]
+                    val src = data[3]
+                    val dst = data[4]
+                    val result = data[5]
+                    val self = System.getenv("DCKR_NAME")
+                    return logFormat.format(requestId, spanId, parId, timestampFormat.format(Date()),
+                        record.level.localizedName, src, dst, self, result)
                 }
             }
             baseLogger.addHandler(handler)
@@ -62,13 +65,19 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
             super.channelRead(ctx, msg)
             return
         }
+        val spanId = UUID.randomUUID().toString()
+        val parId = request.headers()["X-Span-Id"] ?: "-"
+        request.headers()["X-Span-Id"] = spanId
+        request.headers()["X-Par-Id"] = parId
         sendMessage(ctx, request, i)
     }
 
     private fun sendMessage(ctx: ChannelHandlerContext, msg: FullHttpRequest, i: Int, retries: Int = 3) {
-        val requestId = msg.headers()["X-Request-Id"] ?: "null"
-        val client = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
-        val server = config.backends[i].address
+        val requestId = msg.headers()["X-Request-Id"] ?: "-"
+        val spanId = msg.headers()["X-Span-Id"]
+        val parId = msg.headers()["X-Par-Id"]
+        val src = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
+        val dst = config.backends[i].address
         if (channels[i]?.isActive == false) {
             if (retries == 0) {
                 flushAndClose(ctx.channel())
@@ -79,10 +88,10 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
         } else {
             channels[i]?.writeAndFlush(msg)?.addListener { future ->
                 if (future.isSuccess) {
-                    logger.info("$requestId $client $server SUBM")
+                    logger.info("$requestId $spanId $parId $src $dst SUBM")
                     ctx.channel().read()
                 } else {
-                    logger.warning("$requestId $client $server FAIL")
+                    logger.warning("$requestId $spanId $parId $src $dst FAIL")
                     channels[i]?.close()
                 }
             }
@@ -109,17 +118,15 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
                 config.backends[i].port
             )
             channels[i] = f.channel()
-
-            val requestId = "null"
-            val client = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
-            val server = config.backends[i].address
+            val src = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
+            val dst = config.backends[i].address
 
             val listener = ChannelFutureListener { future ->
                 if (future.isSuccess) {
-                    logger.info("$requestId $client $server CONN")
+                    logger.info("- - - $src $dst CONN")
                     inboundChannel.read()
                 } else {
-                    logger.warning("$requestId $client $server REF")
+                    logger.warning("- - - $src $dst REF")
                     future.channel().close()
                     flushAndClose(ctx.channel())
                 }
@@ -155,10 +162,8 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        val requestId = "null"
-        val client = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
-        val server = config.backends[i].address + ":" + config.backends[i].port
-        logger.warning("$requestId $client $server EXC")
+        val src = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
+        logger.warning("- - - $src - EXC")
         //System.err.println(cause.message)
         flushAndClose(ctx.channel())
     }
