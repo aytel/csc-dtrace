@@ -49,16 +49,16 @@ class BackendHandler(private val channel: Channel, private val backend: Backend)
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         if (msg is FullHttpResponse) {
-            val requestId = msg.headers()["X-Request-Id"] ?: "null"
+            val requestId = msg.headers()["X-Request-Id"] ?: "-"
             val server = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
             val client = (channel.remoteAddress() as InetSocketAddress).address.hostAddress
             val status = msg.status().code().toString()
             channel.writeAndFlush(msg).addListener{ future ->
                 if (future.isSuccess) {
-                    logger.info("$requestId $client $server $status")
+                    logger.info("$requestId - - $client $server $status")
                     ctx.channel().read()
                 } else {
-                    logger.info("$requestId $client $server $status")
+                    logger.info("$requestId - - $client $server $status")
                     channel.close()
                     ctx.channel().close()
                 }
@@ -73,10 +73,9 @@ class BackendHandler(private val channel: Channel, private val backend: Backend)
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        val requestId = "null"
         val server = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
         val client = (channel.remoteAddress() as InetSocketAddress).address.hostAddress
-        ListenThreadHandler.logger.warning("$requestId $client $server EXC")
+        ListenThreadHandler.logger.warning("- - - $client $server EXC")
         //System.err.println(cause.message)
         ListenThreadHandler.flushAndClose(channel)
     }

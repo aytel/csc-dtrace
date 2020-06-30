@@ -19,8 +19,8 @@ services:
         image: balancer:latest
         restart: always
         build: ./test-app/service/balancer
-        #environment:
-            #- LOGSPOUT=ignore
+        environment:
+            - DCKR_NAME=calculator_b
         volumes:
             - ${PWD}/test-app/service/calculator/balancer.properties:/app/balancer.properties:ro
         depends_on:
@@ -46,8 +46,8 @@ services:
         image: balancer:latest
         restart: always
         build: ./test-app/service/balancer
-        #environment:
-            #- LOGSPOUT=ignore
+        environment:
+            - DCKR_NAME=parser_b
         volumes:
             - ${PWD}/test-app/service/parser/balancer.properties:/app/balancer.properties:ro
         depends_on:
@@ -68,8 +68,8 @@ services:
         image: balancer:latest
         restart: always
         build: ./test-app/service/balancer
-        #environment:
-            #- LOGSPOUT=ignore
+        environment:
+            - DCKR_NAME=presenter_b
         volumes:
             - ${PWD}/test-app/service/presenter/balancer.properties:/app/balancer.properties:ro
         depends_on:
