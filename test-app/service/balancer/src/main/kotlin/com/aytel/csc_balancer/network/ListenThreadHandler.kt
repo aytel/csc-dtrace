@@ -20,6 +20,7 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
     private val random = Random.Default
     private val channels: Array<Channel?> = Array(config.backends.size) {null}
     private var i: Int = 0
+    private var lastRid: String = "-"
 
     companion object {
         @JvmStatic
@@ -74,6 +75,7 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
 
     private fun sendMessage(ctx: ChannelHandlerContext, msg: FullHttpRequest, i: Int, retries: Int = 3) {
         val requestId = msg.headers()["X-Request-Id"] ?: "-"
+        lastRid = requestId
         val spanId = msg.headers()["X-Span-Id"]
         val parId = msg.headers()["X-Par-Id"]
         val src = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
@@ -123,10 +125,10 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
 
             val listener = ChannelFutureListener { future ->
                 if (future.isSuccess) {
-                    logger.info("- - - $src $dst CONN")
+                    logger.info("$lastRid - - $src $dst CONN")
                     inboundChannel.read()
                 } else {
-                    logger.warning("- - - $src $dst REF")
+                    logger.warning("$lastRid - - $src $dst REF")
                     future.channel().close()
                     flushAndClose(ctx.channel())
                 }
@@ -163,8 +165,7 @@ class ListenThreadHandler(private val config: Properties) : ChannelInboundHandle
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         val src = (ctx.channel().remoteAddress() as InetSocketAddress).address.hostAddress
-        logger.warning("- - - $src - EXC")
-        //System.err.println(cause.message)
+        logger.warning("$lastRid - - $src - EXC")
         flushAndClose(ctx.channel())
     }
 }
